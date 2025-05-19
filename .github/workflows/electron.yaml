@@ -134,7 +134,7 @@ jobs:
 #          path: chatsvc\bin\
 
   build-electron-darwin:
-    needs: [build-darwin-binaries]
+    needs: [build-frontend, build-darwin-binaries]
     runs-on: macos-latest
     steps:
       - uses: actions/download-artifact@v4
