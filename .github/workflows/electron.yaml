@@ -165,7 +165,7 @@ jobs:
           npm run build --mac --arm false --x64 true
           cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
           npm run build --mac --arm true --x64 false
-          ls -la
+          tree . -L 2
       - uses: actions/upload-artifact@v4
         with:
           name: electron-macos
