@@ -66,7 +66,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: darwin-binaries
-          path: bin/
+          path: chatsvc/bin/
 
   build-linux-binaries:
     needs: build-frontend
@@ -95,7 +95,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: linux-binary
-          path: bin/
+          path: chatsvc/bin/
 
   build-windows-binaries:
     needs: build-frontend
@@ -127,7 +127,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: windows-binary
-          path: bin/
+          path: chatsvc\bin\
 
   build-electron-darwin:
     needs: [build-darwin-binaries]
@@ -227,98 +227,3 @@ jobs:
             bin/**/*.AppImage
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-
-#jobs:
-#  build:
-#    runs-on: macos-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: '1.21'
-#      - name: Setup Node & Build Frontend
-#        env:
-#          CI: false
-#        run: |
-#          brew install node libffi mupdf tree
-#          npm install -g pnpm
-#          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ChatAnyAI/chatanyai.git
-#          cd chatanyai
-#          pnpm i
-#          npm run build
-#          cp -rf build/* ../pkg/router/ui/build/
-#
-#      - name: Build Go Binaries for All Platforms
-#        run: |
-#          pwd
-#          ls -la
-#          tree . -L 1
-#          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
-#          go env -w GOPRIVATE=github.com/ragzone/ragpdf
-#          go mod download -x
-#          export CGO_ENABLED=1
-#          # macOS (darwin/arm64)
-#          GOOS=darwin GOARCH=arm64 go build -o bin/chatanyai_darwin_arm64 main.go
-#          # macOS x64 (amd64)
-#          GOOS=darwin GOARCH=amd64 go build -o bin/chatanyai_darwin_amd64 main.go
-#          # Windows (windows/amd64)
-#          GOOS=windows GOARCH=amd64 go build -o bin/chatanyai_windows_amd64.exe main.go
-#          # Linux (linux/amd64)
-#          GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
-#          tree bin -L 1
-#      - name: Build Electron App (macOS amd64)
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-#          APPLE_ID: ${{ secrets.APPLE_ID }}
-#          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-#          CSC_LINK: ${{ secrets.CSC_LINK }}
-#          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-#          CI: false
-#        run: |
-#          VERSION=${GITHUB_REF#refs/tags/e}
-#          echo $VERSION
-#          npm version $VERSION --no-git-tag-version
-#          npm i
-#          # Replace backend
-#          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
-#          npm run build --mac --arm false --x64 true
-#          tree bin -L 1
-#      - name: Build Electron App (macOS arm)
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-#          APPLE_ID: ${{ secrets.APPLE_ID }}
-#          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-#          CSC_LINK: ${{ secrets.CSC_LINK }}
-#          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-#          CI: false
-#        run: |
-#          # Replace backend
-#          cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
-#          npm run build --mac --arm true --x64 false
-#          tree bin -L 1
-#
-#      - name: Build Electron App (Windows)
-#        run: |
-#          # Replace backend
-#          cp bin/chatanyai_windows_amd64.exe electron/server/chatanyai.exe
-#          npm run build --win
-#          tree bin -L 1
-#
-#      - name: Build Electron App (Linux)
-#        run: |
-#          # Replace backend
-#          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
-#          npm run build --linux
-#          tree bin -L 1
-#
-#      - name: Upload Artifacts
-#        uses: softprops/action-gh-release@v1
-#        with:
-#          files: |
-#            bin/*.dmg
-#            bin/*.exe
-#            bin/*.AppImage
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
