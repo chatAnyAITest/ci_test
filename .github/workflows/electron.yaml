@@ -74,64 +74,64 @@ jobs:
           name: darwin-binaries
           path: chatsvc/bin/
 
-#  build-linux-binaries:
-#    needs: build-frontend
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: '1.21'
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: frontend
-#          path: chatsvc
-#      - name: Build Linux Binary
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-#          CI: false
-#        run: |
-#          cd chatsvc
-#          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
-#          go env -w GOPRIVATE=github.com/ragzone/ragpdf
-#          go mod download
-#          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
-#          ls -la bin/
-#          ls -la pkg/router/ui/build/
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: linux-binary
-#          path: chatsvc/bin/
-#
-#  build-windows-binaries:
-#    needs: build-frontend
-#    runs-on: windows-latest
-#    steps:
-#      - uses: actions/setup-go@v4
-#        with:
-#          go-version: '1.21'
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: frontend
-#          path: chatsvc
-#      - name: Build Windows Binary
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-#          CI: false
-#        run: |
-#          cd chatsvc
-#          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
-#          go env -w GOPRIVATE=github.com/ragzone/ragpdf
-#          go mod download
-#          $env:CGO_ENABLED="1"
-#          $env:GOOS="windows"
-#          $env:GOARCH="amd64"
-#          go build -o bin/chatanyai_windows_amd64.exe main.go
-#          ls  bin
-#          dir pkg\router\ui\build
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: windows-binary
-#          path: chatsvc\bin\
+  build-linux-binaries:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: chatsvc
+      - name: Build Linux Binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+        run: |
+          cd chatsvc
+          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+          go mod download
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
+          ls -la bin/
+          ls -la pkg/router/ui/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: chatsvc/bin/
+
+  build-windows-binaries:
+    needs: build-frontend
+    runs-on: windows-latest
+    steps:
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: chatsvc
+      - name: Build Windows Binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+        run: |
+          cd chatsvc
+          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+          go mod download
+          $env:CGO_ENABLED="1"
+          $env:GOOS="windows"
+          $env:GOARCH="amd64"
+          go build -o bin/chatanyai_windows_amd64.exe main.go
+          ls  bin
+          dir pkg\router\ui\build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-binary
+          path: chatsvc\bin\
 
   build-electron-darwin:
     needs: [build-frontend, build-darwin-binaries]
@@ -171,67 +171,66 @@ jobs:
           name: electron-macos
           path: bin/
 
-#  build-electron-linux:
-#    needs: [build-linux-binaries]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: frontend
-#          path: chatsvc
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: linux-binary
-#          path: chatsvc/bin/
-#      - name: Build Electron Linux
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-#          CI: false
-#          VERSION: ${{ env.VERSION }}
-#        run: |
-#          cd chatsvc
-#          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
-#          echo "Version is $VERSION"
-#          npm version $VERSION --no-git-tag-version
-#          npm i
-#          npm run build --linux
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: electron-linux
-#          path: bin/
+  build-electron-linux:
+    needs: [build-frontend, build-linux-binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: chatsvc
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-binary
+          path: chatsvc/bin/
+      - name: Build Electron Linux
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+          VERSION: ${{ needs.build-frontend.outputs.version }}
+        run: |
+          cd chatsvc
+          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
+          echo "Version is $VERSION"
+          npm version $VERSION --no-git-tag-version
+          npm i
+          npm run build --linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: electron-linux
+          path: bin/
 
-#  build-electron-windows:
-#    needs: [build-windows-binaries]
-#    runs-on: windows-latest
-#    steps:
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: frontend
-#          path: chatsvc
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: windows-binary
-#          path: chatsvc\bin
-#      - name: Build Electron Windows
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-#          CI: false
-#          VERSION: ${{ env.VERSION }}
-#        run: |
-#          cd chatsvc
-#          copy bin\chatanyai_windows_amd64.exe electron\server\chatanyai.exe
-#          echo "VERSION = $env:VERSION"
-#          npm version $env:VERSION --no-git-tag-version
-#          npm i
-#          npm run build --win
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: electron-windows
-#          path: bin/
+  build-electron-windows:
+    needs: [build-frontend, build-windows-binaries]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: chatsvc
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-binary
+          path: chatsvc\bin
+      - name: Build Electron Windows
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+          VERSION: ${{ needs.build-frontend.outputs.version }}
+        run: |
+          cd chatsvc
+          copy bin\chatanyai_windows_amd64.exe electron\server\chatanyai.exe
+          echo "VERSION = $env:VERSION"
+          npm version $env:VERSION --no-git-tag-version
+          npm i
+          npm run build --win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: electron-windows
+          path: bin/
 
   release:
-#    needs: [build-electron-darwin, build-electron-linux, build-electron-windows]
-    needs: [build-electron-darwin]
+    needs: [build-electron-darwin, build-electron-linux, build-electron-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
