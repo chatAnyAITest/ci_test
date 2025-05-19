@@ -17,6 +17,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
         run: |
+          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
+          cd chatsvc
           npm install -g pnpm
           git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ChatAnyAI/chatanyai.git
           cd chatanyai
@@ -24,11 +26,12 @@ jobs:
           npm run build
           cp -rf build/* ../pkg/router/ui/build/
           cd ..
+          rm -rf chatanyai
           ls -la pkg/router/ui/build/
       - uses: actions/upload-artifact@v4
         with:
           name: frontend
-          path: pkg/router/ui/build/
+          path: chatsvc
       - name: Extract Version
         id: version
         run: |
@@ -45,13 +48,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: frontend
-          path: pkg/router/ui/build/
+          path: chatsvc
       - name: Build Darwin Binaries
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
         run: |
-          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
           cd chatsvc
           brew install libffi mupdf tree
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
@@ -77,18 +79,18 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: frontend
-          path: pkg/router/ui/build/
+          path: chatsvc
       - name: Build Linux Binary
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
         run: |
-          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
           cd chatsvc
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
           go env -w GOPRIVATE=github.com/ragzone/ragpdf
           go mod download
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
+          ls -la bin/
           ls -la pkg/router/ui/build/
       - uses: actions/upload-artifact@v4
         with:
@@ -106,13 +108,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: frontend
-          path: pkg/router/ui/build/
+          path: chatsvc
       - name: Build Windows Binary
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
         run: |
-          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
           cd chatsvc
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
           go env -w GOPRIVATE=github.com/ragzone/ragpdf
@@ -121,7 +122,8 @@ jobs:
           $env:GOOS="windows"
           $env:GOARCH="amd64"
           go build -o bin/chatanyai_windows_amd64.exe main.go
-          dir pkg/router/ui/build/
+          ls  bin
+          dir pkg\router\ui\build
       - uses: actions/upload-artifact@v4
         with:
           name: windows-binary
