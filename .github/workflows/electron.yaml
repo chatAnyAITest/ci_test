@@ -162,9 +162,9 @@ jobs:
           echo "Version is $VERSION"
           npm version $VERSION --no-git-tag-version
           npm i
-          npm run build --mac --arm64
-          cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
           npm run build --mac --x64
+          cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
+          npm run build --mac --arm64
           tree . -L 2
       - uses: actions/upload-artifact@v4
         with:
