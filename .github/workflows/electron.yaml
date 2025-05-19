@@ -38,7 +38,7 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/e* ]]; then
             VERSION=${GITHUB_REF#refs/tags/e}
             echo "Extracted VERSION=$VERSION"
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           else
           echo "Not a valid tag ref: $GITHUB_REF"
           exit 1
@@ -74,64 +74,64 @@ jobs:
           name: darwin-binaries
           path: chatsvc/bin/
 
-  build-linux-binaries:
-    needs: build-frontend
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-      - uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: chatsvc
-      - name: Build Linux Binary
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          CI: false
-        run: |
-          cd chatsvc
-          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
-          go env -w GOPRIVATE=github.com/ragzone/ragpdf
-          go mod download
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
-          ls -la bin/
-          ls -la pkg/router/ui/build/
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux-binary
-          path: chatsvc/bin/
-
-  build-windows-binaries:
-    needs: build-frontend
-    runs-on: windows-latest
-    steps:
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-      - uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: chatsvc
-      - name: Build Windows Binary
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          CI: false
-        run: |
-          cd chatsvc
-          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
-          go env -w GOPRIVATE=github.com/ragzone/ragpdf
-          go mod download
-          $env:CGO_ENABLED="1"
-          $env:GOOS="windows"
-          $env:GOARCH="amd64"
-          go build -o bin/chatanyai_windows_amd64.exe main.go
-          ls  bin
-          dir pkg\router\ui\build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-binary
-          path: chatsvc\bin\
+#  build-linux-binaries:
+#    needs: build-frontend
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: '1.21'
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: frontend
+#          path: chatsvc
+#      - name: Build Linux Binary
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+#          CI: false
+#        run: |
+#          cd chatsvc
+#          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+#          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+#          go mod download
+#          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
+#          ls -la bin/
+#          ls -la pkg/router/ui/build/
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: linux-binary
+#          path: chatsvc/bin/
+#
+#  build-windows-binaries:
+#    needs: build-frontend
+#    runs-on: windows-latest
+#    steps:
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: '1.21'
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: frontend
+#          path: chatsvc
+#      - name: Build Windows Binary
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+#          CI: false
+#        run: |
+#          cd chatsvc
+#          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+#          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+#          go mod download
+#          $env:CGO_ENABLED="1"
+#          $env:GOOS="windows"
+#          $env:GOARCH="amd64"
+#          go build -o bin/chatanyai_windows_amd64.exe main.go
+#          ls  bin
+#          dir pkg\router\ui\build
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: windows-binary
+#          path: chatsvc\bin\
 
   build-electron-darwin:
     needs: [build-darwin-binaries]
@@ -154,7 +154,7 @@ jobs:
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           CI: false
-          VERSION: ${{ env.VERSION }}
+          VERSION: ${{ needs.build-frontend.outputs.version }}
         run: |
           cd chatsvc
           cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
