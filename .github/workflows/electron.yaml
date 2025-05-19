@@ -1,0 +1,326 @@
+name: electron
+
+on:
+  push:
+    tags:
+      - "e**"
+
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        run: |
+          apt install -y node
+          npm install -g pnpm
+      - name: Build Frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+        run: |
+          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ChatAnyAI/chatanyai.git
+          cd chatanyai
+          pnpm install
+          npm run build
+          cp -rf build/* ../pkg/router/ui/build/
+          cd ..
+          ls -la pkg/router/ui/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend
+          path: pkg/router/ui/build/
+      - name: Extract Version
+        id: version
+        run: |
+          echo "VERSION=${GITHUB_REF#refs/tags/e}" >> $GITHUB_ENV
+
+  build-darwin-binaries:
+    needs: build-frontend
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: pkg/router/ui/build/
+      - name: Build Darwin Binaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+        run: |
+          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
+          cd chatsvc
+          brew install libffi mupdf tree
+          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+          go mod download
+          CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -o bin/chatanyai_darwin_arm64 main.go
+          CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o bin/chatanyai_darwin_amd64 main.go
+          ls -la bin/
+          ls -la pkg/router/ui/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: darwin-binaries
+          path: bin/
+
+  build-linux-binaries:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: pkg/router/ui/build/
+      - name: Build Linux Binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+        run: |
+          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
+          cd chatsvc
+          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+          go mod download
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
+          ls -la pkg/router/ui/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-binary
+          path: bin/
+
+  build-windows-binaries:
+    needs: build-frontend
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend
+          path: pkg/router/ui/build/
+      - name: Build Windows Binary
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+        run: |
+          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
+          cd chatsvc
+          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+          go mod download
+          $env:CGO_ENABLED="1"
+          $env:GOOS="windows"
+          $env:GOARCH="amd64"
+          go build -o bin/chatanyai_windows_amd64.exe main.go
+          dir pkg/router/ui/build/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-binary
+          path: bin/
+
+  build-electron-darwin:
+    needs: [build-darwin-binaries]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: darwin-binaries
+          path: bin/
+      - name: Build Electron macOS (amd64 & arm64)
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CI: false
+          VERSION: ${{ env.VERSION }}
+        run: |
+          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
+          echo "Version is $VERSION"
+          npm version $VERSION --no-git-tag-version
+          npm i
+          npm run build --mac --arm false --x64 true
+          cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
+          npm run build --mac --arm true --x64 false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: electron-macos
+          path: bin/
+
+  build-electron-linux:
+    needs: [build-linux-binaries]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-binary
+          path: bin/
+      - name: Build Electron Linux
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+          VERSION: ${{ env.VERSION }}
+        run: |
+          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
+          echo "Version is $VERSION"
+          npm version $VERSION --no-git-tag-version
+          npm i
+          npm run build --linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: electron-linux
+          path: bin/
+
+  build-electron-windows:
+    needs: [build-windows-binaries]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-binary
+          path: bin/
+      - name: Build Electron Windows
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          CI: false
+          VERSION: ${{ env.VERSION }}
+        run: |
+          copy bin\chatanyai_windows_amd64.exe electron\server\chatanyai.exe
+          echo "VERSION = $env:VERSION"
+          npm version $env:VERSION --no-git-tag-version
+          npm i
+          npm run build --win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: electron-windows
+          path: bin/
+
+  release:
+    needs: [build-electron-darwin, build-electron-linux, build-electron-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: bin/
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/**/*.dmg
+            bin/**/*.exe
+            bin/**/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+
+#jobs:
+#  build:
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-go@v4
+#        with:
+#          go-version: '1.21'
+#      - name: Setup Node & Build Frontend
+#        env:
+#          CI: false
+#        run: |
+#          brew install node libffi mupdf tree
+#          npm install -g pnpm
+#          git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ChatAnyAI/chatanyai.git
+#          cd chatanyai
+#          pnpm i
+#          npm run build
+#          cp -rf build/* ../pkg/router/ui/build/
+#
+#      - name: Build Go Binaries for All Platforms
+#        run: |
+#          pwd
+#          ls -la
+#          tree . -L 1
+#          git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
+#          go env -w GOPRIVATE=github.com/ragzone/ragpdf
+#          go mod download -x
+#          export CGO_ENABLED=1
+#          # macOS (darwin/arm64)
+#          GOOS=darwin GOARCH=arm64 go build -o bin/chatanyai_darwin_arm64 main.go
+#          # macOS x64 (amd64)
+#          GOOS=darwin GOARCH=amd64 go build -o bin/chatanyai_darwin_amd64 main.go
+#          # Windows (windows/amd64)
+#          GOOS=windows GOARCH=amd64 go build -o bin/chatanyai_windows_amd64.exe main.go
+#          # Linux (linux/amd64)
+#          GOOS=linux GOARCH=amd64 go build -o bin/chatanyai_linux_amd64 main.go
+#          tree bin -L 1
+#      - name: Build Electron App (macOS amd64)
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+#          APPLE_ID: ${{ secrets.APPLE_ID }}
+#          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+#          CSC_LINK: ${{ secrets.CSC_LINK }}
+#          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+#          CI: false
+#        run: |
+#          VERSION=${GITHUB_REF#refs/tags/e}
+#          echo $VERSION
+#          npm version $VERSION --no-git-tag-version
+#          npm i
+#          # Replace backend
+#          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
+#          npm run build --mac --arm false --x64 true
+#          tree bin -L 1
+#      - name: Build Electron App (macOS arm)
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+#          APPLE_ID: ${{ secrets.APPLE_ID }}
+#          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+#          CSC_LINK: ${{ secrets.CSC_LINK }}
+#          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+#          CI: false
+#        run: |
+#          # Replace backend
+#          cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
+#          npm run build --mac --arm true --x64 false
+#          tree bin -L 1
+#
+#      - name: Build Electron App (Windows)
+#        run: |
+#          # Replace backend
+#          cp bin/chatanyai_windows_amd64.exe electron/server/chatanyai.exe
+#          npm run build --win
+#          tree bin -L 1
+#
+#      - name: Build Electron App (Linux)
+#        run: |
+#          # Replace backend
+#          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
+#          npm run build --linux
+#          tree bin -L 1
+#
+#      - name: Upload Artifacts
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          files: |
+#            bin/*.dmg
+#            bin/*.exe
+#            bin/*.AppImage
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
