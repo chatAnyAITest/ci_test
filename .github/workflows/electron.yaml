@@ -12,16 +12,12 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        run: |
-          apt install -y node
-          npm install -g pnpm
       - name: Build Frontend
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
         run: |
+          npm install -g pnpm
           git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ChatAnyAI/chatanyai.git
           cd chatanyai
           pnpm install
