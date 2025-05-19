@@ -38,7 +38,7 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/e* ]]; then
             VERSION=${GITHUB_REF#refs/tags/e}
             echo "Extracted VERSION=$VERSION"
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
           else
           echo "Not a valid tag ref: $GITHUB_REF"
           exit 1
