@@ -35,7 +35,14 @@ jobs:
       - name: Extract Version
         id: version
         run: |
-          echo "VERSION=${GITHUB_REF#refs/tags/e}" >> $GITHUB_ENV
+          if [[ "${GITHUB_REF}" == refs/tags/e* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/e}
+            echo "Extracted VERSION=$VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          else
+          echo "Not a valid tag ref: $GITHUB_REF"
+          exit 1
+          fi
 
   build-darwin-binaries:
     needs: build-frontend
@@ -162,66 +169,67 @@ jobs:
           name: electron-macos
           path: bin/
 
-  build-electron-linux:
-    needs: [build-linux-binaries]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: chatsvc
-      - uses: actions/download-artifact@v4
-        with:
-          name: linux-binary
-          path: chatsvc/bin/
-      - name: Build Electron Linux
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          CI: false
-          VERSION: ${{ env.VERSION }}
-        run: |
-          cd chatsvc
-          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
-          echo "Version is $VERSION"
-          npm version $VERSION --no-git-tag-version
-          npm i
-          npm run build --linux
-      - uses: actions/upload-artifact@v4
-        with:
-          name: electron-linux
-          path: bin/
+#  build-electron-linux:
+#    needs: [build-linux-binaries]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: frontend
+#          path: chatsvc
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: linux-binary
+#          path: chatsvc/bin/
+#      - name: Build Electron Linux
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+#          CI: false
+#          VERSION: ${{ env.VERSION }}
+#        run: |
+#          cd chatsvc
+#          cp bin/chatanyai_linux_amd64 electron/server/chatanyai
+#          echo "Version is $VERSION"
+#          npm version $VERSION --no-git-tag-version
+#          npm i
+#          npm run build --linux
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: electron-linux
+#          path: bin/
 
-  build-electron-windows:
-    needs: [build-windows-binaries]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: chatsvc
-      - uses: actions/download-artifact@v4
-        with:
-          name: windows-binary
-          path: chatsvc\bin
-      - name: Build Electron Windows
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          CI: false
-          VERSION: ${{ env.VERSION }}
-        run: |
-          cd chatsvc
-          copy bin\chatanyai_windows_amd64.exe electron\server\chatanyai.exe
-          echo "VERSION = $env:VERSION"
-          npm version $env:VERSION --no-git-tag-version
-          npm i
-          npm run build --win
-      - uses: actions/upload-artifact@v4
-        with:
-          name: electron-windows
-          path: bin/
+#  build-electron-windows:
+#    needs: [build-windows-binaries]
+#    runs-on: windows-latest
+#    steps:
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: frontend
+#          path: chatsvc
+#      - uses: actions/download-artifact@v4
+#        with:
+#          name: windows-binary
+#          path: chatsvc\bin
+#      - name: Build Electron Windows
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+#          CI: false
+#          VERSION: ${{ env.VERSION }}
+#        run: |
+#          cd chatsvc
+#          copy bin\chatanyai_windows_amd64.exe electron\server\chatanyai.exe
+#          echo "VERSION = $env:VERSION"
+#          npm version $env:VERSION --no-git-tag-version
+#          npm i
+#          npm run build --win
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: electron-windows
+#          path: bin/
 
   release:
-    needs: [build-electron-darwin, build-electron-linux, build-electron-windows]
+#    needs: [build-electron-darwin, build-electron-linux, build-electron-windows]
+    needs: [build-electron-darwin]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
