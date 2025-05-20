@@ -145,6 +145,10 @@ jobs:
         with:
           name: darwin-binaries
           path: chatsvc/bin/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
       - name: Build Electron macOS (amd64 & arm64)
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
@@ -156,10 +160,8 @@ jobs:
           CI: false
           VERSION: ${{ needs.build-frontend.outputs.version }}
         run: |
-          brew install tree nvm
-          nvm install 22
-          nvm use 22
-          nvm alias default 22
+          brew install tree
+          node -v
           cd chatsvc
           echo "Version is $VERSION"
           npm version $VERSION --no-git-tag-version
