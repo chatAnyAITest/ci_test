@@ -168,13 +168,14 @@ jobs:
           npm i
           cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
           npx electron-builder --mac --arm64
+          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
+          npx electron-builder --mac --x64
           tree ./bin -L 2
       - uses: actions/upload-artifact@v4
         with:
           name: electron-macos
           path: chatsvc/bin/
-  #          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
-  #          npx electron-builder --mac --x64
+
 
 #  build-electron-linux:
 #    needs: [build-frontend, build-linux-binaries]
