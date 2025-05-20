@@ -171,6 +171,8 @@ jobs:
           pwd
           ls -lah bin/chatanyai_universal
           ls -lah electron/server/chatanyai
+          md5 bin/chatanyai_universal
+          md5 electron/server/chatanyai
           npm version $VERSION --no-git-tag-version
           npm i
           npx electron-builder --mac
