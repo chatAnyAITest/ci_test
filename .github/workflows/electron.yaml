@@ -156,16 +156,19 @@ jobs:
           CI: false
           VERSION: ${{ needs.build-frontend.outputs.version }}
         run: |
-          brew install tree
+          brew install tree nvm
+          nvm install 22
+          nvm use 22
+          nvm alias default 22
           cd chatsvc
-          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
           echo "Version is $VERSION"
           npm version $VERSION --no-git-tag-version
           npm i
-          npx electron-builder --mac --x64
+#          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
+#          npx electron-builder --mac --x64
           cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
           npx electron-builder --mac --arm64
-          tree . -L 2
+          tree ./bin -L 2
       - uses: actions/upload-artifact@v4
         with:
           name: electron-macos
