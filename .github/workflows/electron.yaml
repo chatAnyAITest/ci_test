@@ -67,8 +67,10 @@ jobs:
           go mod download
           CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -o bin/chatanyai_darwin_arm64 main.go
           CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o bin/chatanyai_darwin_amd64 main.go
+          lipo -create -output bin/chatanyai_universal bin/chatanyai_darwin_arm64 bin/chatanyai_darwin_amd64
           ls -la bin/
           ls -la pkg/router/ui/build/
+          rm bin/chatanyai_darwin_arm64 bin/chatanyai_darwin_amd64
       - uses: actions/upload-artifact@v4
         with:
           name: darwin-binaries
@@ -167,10 +169,8 @@ jobs:
           echo "Version is $VERSION"
           npm version $VERSION --no-git-tag-version
           npm i
-          cp bin/chatanyai_darwin_arm64 electron/server/chatanyai
-          npx electron-builder --mac --arm64
-          cp bin/chatanyai_darwin_amd64 electron/server/chatanyai
-          npx electron-builder --mac --x64
+          cp bin/chatanyai_universal electron/server/chatanyai
+          npx electron-builder --mac
           tree ./bin -L 2
       - uses: actions/upload-artifact@v4
         with:
