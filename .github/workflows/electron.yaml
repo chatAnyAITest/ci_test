@@ -167,11 +167,14 @@ jobs:
           node -v
           cd chatsvc
           echo "Version is $VERSION"
+          cp bin/chatanyai_universal electron/server/chatanyai
+          pwd
+          ls -lah bin/chatanyai_universal
+          ls -lah electron/server/chatanyai
           npm version $VERSION --no-git-tag-version
           npm i
-          cp bin/chatanyai_universal electron/server/chatanyai
           npx electron-builder --mac
-          tree ./bin -L 2
+          tree ./bin -L 2 -h
       - uses: actions/upload-artifact@v4
         with:
           name: electron-macos
