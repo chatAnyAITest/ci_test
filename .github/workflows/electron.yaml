@@ -149,6 +149,7 @@ jobs:
         with:
           node-version: 22
           cache: 'npm'
+          cache-dependency-path: 'chatsvc/package-lock.json'
       - name: Build Electron macOS (amd64 & arm64)
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
