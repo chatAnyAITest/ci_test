@@ -168,6 +168,7 @@ jobs:
           cd chatsvc
           echo "Version is $VERSION"
           cp bin/chatanyai_universal electron/server/chatanyai
+          chmod u+x electron/server/chatanyai
           pwd
           ls -lah bin/chatanyai_universal
           ls -lah electron/server/chatanyai
