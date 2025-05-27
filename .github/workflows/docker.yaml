@@ -56,7 +56,10 @@ jobs:
           CI: false
         run: |
             git clone https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com/ragzone/chatsvc.git
-            cd chatsvc
+      - name: Do something in chatsvc
+        run: |
+          echo "Now inside chatsvc directory"
+        working-directory: ./chatsvc
       - name: Run Web
         env:
           CI: false
@@ -68,7 +71,8 @@ jobs:
           npm install -g pnpm
           pnpm i
           npm run build
-          pwd
+          ls -rtl ../
+          ls -rtl ../../
           cp -rf build/* ../pkg/router/ui/build/
           ls -rtl ../pkg/router/ui/build/
           tree ../pkg/router/ui -L 3
