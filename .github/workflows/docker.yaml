@@ -82,3 +82,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             GOPROXY=proxy.golang.org
+            MY_GITHUB_TOKEN=${{ secrets.MY_GITHUB_TOKEN }}
