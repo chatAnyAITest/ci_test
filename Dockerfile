@@ -10,6 +10,7 @@ RUN git config --global url."https://allentatakai:${MY_GITHUB_TOKEN}@github.com"
 RUN go env -w GOPRIVATE=github.com/ragzone/ragpdf
 WORKDIR /chatanyai
 COPY . .
+RUN ls -rtl .
 RUN ls -rtl pkg/router/ui/build/
 RUN make build
 RUN strings ./bin/chatanyai | grep "index.html"

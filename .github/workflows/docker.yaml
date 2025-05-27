@@ -71,6 +71,7 @@ jobs:
           cp -rf build/* ../pkg/router/ui/build/
           ls -rtl ../pkg/router/ui/build/
           tree ../pkg/router/ui -L 3
+          cd ..
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
