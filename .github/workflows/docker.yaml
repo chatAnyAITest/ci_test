@@ -75,6 +75,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
+          working-directory: ./chatsvc
           context: .
           push: true
           platforms: linux/amd64
