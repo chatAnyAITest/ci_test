@@ -4,10 +4,7 @@ on:
   push:
     tags:
       - "v**"
-#    branches:
-#      - 'main'
-#env:
-#  REGISTRY: 'registry.cn-beijing.aliyuncs.com'
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -46,11 +43,7 @@ jobs:
 #          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#      - name: Clone Other Go Modules
-#        run: |
-#          cd ../
-#          git clone https://${{ secrets.GIT_REPO_TOKEN }}:x-oauth-basic@github.com/ragzone/ragpdf.git
-#          ls -rtl
+
       - name: Chatsvc clone
         env:
           CI: false
@@ -72,6 +65,9 @@ jobs:
           ls -rtl ../pkg/router/ui/build/
           tree ../pkg/router/ui -L 3
           cd ..
+      - name: Extract version
+        id: extract_version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -83,3 +79,4 @@ jobs:
           build-args: |
             GOPROXY=proxy.golang.org
             MY_GITHUB_TOKEN=${{ secrets.MY_GITHUB_TOKEN }}
+            MY_APP_VERSION=${{ steps.extract_version.outputs.version }}
