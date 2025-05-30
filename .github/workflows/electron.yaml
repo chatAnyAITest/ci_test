@@ -60,15 +60,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
+          APP_VERSION: ${{ needs.build-frontend.outputs.version }}
         run: |
           cd chatsvc
           brew install libffi mupdf tree
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
           go env -w GOPRIVATE=github.com/ragzone/ragpdf
           go mod download
-          CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -o bin/chatanyai_darwin_arm64 main.go
-          CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o bin/chatanyai_darwin_amd64 main.go
-          lipo -create -output bin/chatanyai_universal bin/chatanyai_darwin_arm64 bin/chatanyai_darwin_amd64
+          make darwin
           ls -la bin/
           ls -la pkg/router/ui/build/
           rm bin/chatanyai_darwin_arm64 bin/chatanyai_darwin_amd64
@@ -120,16 +119,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
+          APP_VERSION: ${{ needs.build-frontend.outputs.version }}
         run: |
           cd chatsvc
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
           go env -w GOPRIVATE=github.com/ragzone/ragpdf
           go mod download
-          $env:CGO_ENABLED="1"
-          $env:GOOS="windows"
-          $env:GOARCH="amd64"
-          go build -o bin/chatanyai_windows_amd64.exe main.go
-          ls  bin
+          make windows
+          ls bin
           dir pkg\router\ui\build
       - uses: actions/upload-artifact@v4
         with:
@@ -173,8 +170,6 @@ jobs:
           pwd
           ls -lah bin/chatanyai_universal
           ls -lah electron/server/chatanyai
-          md5 bin/chatanyai_universal
-          md5 electron/server/chatanyai
           npm version $VERSION --no-git-tag-version
           npm i
           npx electron-builder --mac
