@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      GIT_COMMIT: ${{ steps.version.outputs.GIT_COMMIT }}
     steps:
       - name: Build Frontend
         env:
@@ -33,6 +34,13 @@ jobs:
         with:
           name: frontend
           path: chatsvc
+      - name: Get Git Commit Hash
+        id: get_hash
+        run: |
+          cd chatsvc
+          GIT_COMMIT=$(git rev-parse --short HEAD)
+          echo "GIT_COMMIT=${GIT_COMMIT}"
+          echo "GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_OUTPUT
       - name: Extract Version
         id: version
         run: |
@@ -61,7 +69,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
           APP_VERSION: ${{ needs.build-frontend.outputs.version }}
+          GIT_COMMIT: ${{ needs.build-frontend.outputs.GIT_COMMIT }}
         run: |
+          echo "GIT_COMMIT=${GIT_COMMIT}"
           cd chatsvc
           brew install libffi mupdf tree
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
@@ -120,7 +130,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
           CI: false
           APP_VERSION: ${{ needs.build-frontend.outputs.version }}
+          GIT_COMMIT: ${{ needs.build-frontend.outputs.GIT_COMMIT }}
         run: |
+          echo "GIT_COMMIT=${GIT_COMMIT}"
           cd chatsvc
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
           go env -w GOPRIVATE=github.com/ragzone/ragpdf
