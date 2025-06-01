@@ -71,7 +71,7 @@ jobs:
           APP_VERSION: ${{ needs.build-frontend.outputs.version }}
           GIT_COMMIT: ${{ needs.build-frontend.outputs.gitCommit }}
         run: |
-          echo "GIT_COMMIT=${GIT_COMMIT}"
+          echo "GIT_COMMIT=$GIT_COMMIT"
           cd chatsvc
           brew install libffi mupdf tree
           git config --global url."https://codehash:${{ secrets.MY_GITHUB_TOKEN }}@github.com".insteadOf "https://github.com"
