@@ -39,8 +39,8 @@ jobs:
         run: |
           cd chatsvc
           GIT_COMMIT=$(git rev-parse --short HEAD)
-          echo "gitCommit=${GIT_COMMIT}"
-          echo "gitCommit=${GIT_COMMIT}" >> $GITHUB_OUTPUT
+          echo "gitCommit=$GIT_COMMIT"
+          echo "gitCommit=$GIT_COMMIT" >> $GITHUB_OUTPUT
       - name: Extract Version
         id: version
         run: |
