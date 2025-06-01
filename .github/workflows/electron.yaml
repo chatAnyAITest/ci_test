@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
-      gitCommit: ${{ steps.version.outputs.gitCommit }}
+      gitCommit: ${{ steps.get_hash.outputs.gitCommit }}
     steps:
       - name: Build Frontend
         env:
