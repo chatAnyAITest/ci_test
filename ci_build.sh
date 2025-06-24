@@ -30,6 +30,6 @@ fi
 NEW_TAG="${ARGUMENT}${parts[0]}.${parts[1]}.${parts[2]}"
 
 # Create and push new tag
-#git tag "$NEW_TAG" && git push origin "$NEW_TAG"
+git tag "$NEW_TAG" && git push origin "$NEW_TAG"
 
 echo "New tag created: $NEW_TAG"
